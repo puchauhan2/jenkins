@@ -1,0 +1,75 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Cloning AngularCodeWeb') {
+            steps {
+                
+				sh ''' rm -rf  *
+				mkdir angular wrapper
+				cd angular
+				git clone git@github.com:5ubbareddy/petboox.git .'''
+            }
+            
+        }
+        stage('Pull AngularWrapper ') {
+            steps {
+                
+				sh ''' cd angular
+				git checkout hotfix/angular-wrapper-modifiction
+				git pull origin hotfix/angular-wrapper-modifiction
+				npm i
+				npm audit fix'''
+            }
+            
+        }
+        stage('Pull staging WebApp ') {
+            steps {
+                
+				sh ''' cd wrapper
+				git clone git@github.com:5ubbareddy/petboox.git .
+				git checkout staging
+                git pull origin staging
+                npm i
+                npm audit fix'''
+            }	}
+        stage('Built AngularWrapper ') {
+            steps {
+                
+				sh ''' cd angular
+				npm i
+                npm audit fix --force
+				ng build --prod --base-href "/app/"'''
+            }}
+            
+        stage('Making built for deployment ') {
+            steps {
+                
+				sh ''' cp -rf angular/dist/* wrapper/public/app/dist/
+				cd  wrapper '''
+            }}
+        stage('Running PetbooxWebApp ') {
+            steps {
+                
+				sh ''' cd wrapper
+				cat <<EOF > start.json
+                {
+                 "apps": [
+                 {
+                "name": "Webapp",
+                "script": "./server.js",
+                "instances": 1,
+                "exec_mode": "fork",
+                "env": {
+                "NODE_ENV": "production",
+                                            }
+                                            },
+                            ]
+                }'''
+                sh ''' cd wrapper
+                BUILD_ID=dontKillMe
+                pm2 start start.json'''
+            }}
+        
+    }}
+	

@@ -1,0 +1,32 @@
+BUILD_ID=dontKillMe
+rm -rf *
+cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+cd angular
+git checkout hotfix/angular-wrapper-modifiction
+git pull origin hotfix/angular-wrapper-modifiction
+npm i
+npm audit fix
+
+
+cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+cd wrapper
+git checkout staging
+git pull origin staging
+
+cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+cd angular
+ng build --prod --base-href "/app/"
+
+
+cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+cd wrapper/public/app/dist/
+rm -rf *
+cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+cp -Rf angular/dist/* wrapper/public/app/dist/
+cd  wrapper
+npm i
+npm audit fix --force
+
+cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+cd wrapper
+pm2 start start.json

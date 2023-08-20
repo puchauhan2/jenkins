@@ -1,0 +1,5 @@
+Role-based Authorization Strategy
+
+wget -q --auth-no-challenge --user petboox --password india@123 --output-document - 'http://localhost:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'
+
+wget -q --auth-no-challenge --user petboox --password india@123 --output-document - 'http://localhost:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'

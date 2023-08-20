@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Pull AngularWrapper Code ') {
+            steps {
+                
+				sh ''' cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+				cd angular
+				git checkout hotfix/angular-wrapper-modifiction
+				git pull origin hotfix/angular-wrapper-modifiction
+				npm i
+				npm audit fix'''
+            }
+            
+        }
+        stage('Pull staging WebApp satging') {
+            steps {
+                sh '''cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+				cd wrapper
+				git checkout staging
+                		git pull origin staging'''
+            }	}
+        stage('Built AngularWrapper ') {
+            steps {
+                sh '''cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+				 cd angular
+				ng build --prod --base-href "/app/"'''
+            }}
+            
+        stage('Making built for deployment ') {
+            steps {
+                	sh '''cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+				    cp -rf angular/dist/* wrapper/public/app/dist/
+				cd  wrapper
+                		npm i
+                		npm audit fix --force '''
+            }}
+        stage('Running PetbooxWebApp ') {
+            steps {
+                sh '''cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+				cd wrapper '''
+               	sh ''' cd /var/lib/jenkins/workspace/petboox_Web_pipeline
+				cd wrapper
+				pm2 start start.json'''
+            }}
+        
+    }}
+	

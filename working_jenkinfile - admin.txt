@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Cloning AngularCodeAdmin') {
+            steps {
+                
+				sh ''' rm -rf  *
+				mkdir angular wrapper
+				cd angular
+				git clone git@github.com:5ubbareddy/petboox-admin.git .'''
+            }
+            
+        }
+        stage('Pull AngularDevelopment ') {
+            steps {
+                
+				sh ''' cd angular
+				git checkout development
+				git pull origin development
+				npm i
+				npm audit fix --force'''
+            }
+            
+        }
+        stage('Pull staging AdminApp ') {
+            steps {
+                
+				sh ''' cd wrapper
+				git clone git@github.com:5ubbareddy/petboox-admin.git .
+				git checkout staging
+                git pull origin staging
+                npm i
+                npm audit fix'''
+            }	}
+        stage('Built AngularDevelopment ') {
+            steps {
+                
+				sh ''' cd angular
+				ng build --prod --base-href "/admin/"'''
+            }}
+            
+        stage('Making built for deployment ') {
+            steps {
+                
+				sh ''' rsync -R angular/dist/ wrapper/public/app/dist/
+				cd  wrapper
+                npm i
+                npm audit fix --force '''
+            }}
+        stage('Running PetbooxWebApp ') {
+            steps {
+                
+				sh ''' cd wrapper
+				cat <<EOF > start.json
+                {
+                 "apps": [
+                 {
+                "name": "Webapp",
+                "script": "./server.js",
+                "instances": 1,
+                "exec_mode": "fork",
+                "env": {
+                "NODE_ENV": "production",
+                                            }
+                                            },
+                            ]
+                }'''
+                sh ''' cd wrapper
+                pm2 start start.json'''
+            }}
+        
+    }}
+	
